@@ -1,5 +1,4 @@
 import streamlit as st
-import cv2
 import sqlite3
 import numpy as np
 import json
@@ -41,7 +40,7 @@ uploaded_image = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"]
 if uploaded_image is not None:
     # Load the uploaded image
     file_bytes = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
-    img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    # img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
     st.image(img, caption="Uploaded Image", use_container_width=True)
 
     if st.button("Process Image"):
