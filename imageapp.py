@@ -6,6 +6,11 @@ import supervision as sv
 from ultralytics import YOLO
 from inference import get_model
 
+from PIL import Image
+from io import BytesIO
+
+
+
 # Load model
 PLAYER_DETECTION_MODEL = get_model(
     model_id="football-players-detection-3zvbc/11", 
@@ -40,7 +45,7 @@ uploaded_image = st.file_uploader("Upload an image", type=["jpg", "png", "jpeg"]
 if uploaded_image is not None:
     # Load the uploaded image
     file_bytes = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
-    # img = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+    img  = Image.open(BytesIO(file_bytes))
     st.image(img, caption="Uploaded Image", use_container_width=True)
 
     if st.button("Process Image"):
@@ -56,7 +61,8 @@ if uploaded_image is not None:
 
         # Annotate the image
         ellipse_annotator = sv.EllipseAnnotator(
-            color=sv.ColorPalette.from_hex(['#00BFFF']),
+            # pink color
+            color=sv.ColorPalette.from_hex("#FFC0CB"),
             thickness=2
         )
         annotated_image = ellipse_annotator.annotate(scene=img, detections=player_detections)
