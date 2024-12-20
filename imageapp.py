@@ -2,6 +2,7 @@ import streamlit as st
 import cv2
 import sqlite3
 import numpy as np
+import json
 import supervision as sv
 from ultralytics import YOLO
 from inference import get_model
@@ -52,8 +53,6 @@ if uploaded_image is not None:
 
         # Separate detections
         ball_detections = detections[detections.class_id == BALL_ID]
-        ball_detections.xyxy = sv.pad_boxes(xyxy=ball_detections.xyxy, px=10)
-
         player_detections = detections[detections.class_id == PLAYER_ID]
 
         # Annotate the image
@@ -75,24 +74,39 @@ if uploaded_image is not None:
         st.write("Detected players:", len(player_detections))
         st.write("Detected balls:", len(ball_detections))
 
-        st.write("Here is the data " , player_detections)
-
         # Display annotated image
         st.image(annotated_image, caption="Processed Image", use_container_width=True)
-
 
         # Save detections to SQLite
         image_name = uploaded_image.name
         with conn:
-            for det in player_detections:
+            for det in player_detections.xyxy:
                 conn.execute("""
                     INSERT INTO detections (image_name, object_class, x1, y1, x2, y2)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (image_name, "player", *det.xyxy))
-            for det in ball_detections:
+                """, (image_name, "player", *det))
+            for det in ball_detections.xyxy:
                 conn.execute("""
                     INSERT INTO detections (image_name, object_class, x1, y1, x2, y2)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (image_name, "ball", *det.xyxy))
+                """, (image_name, "ball", *det))
 
         st.success("Processing complete and data saved to database!")
+
+        # Prepare JSON output
+        output_data = {
+            "image_name": image_name,
+            "detections": {
+                "players": [list(det) for det in player_detections.xyxy],
+                "balls": [list(det) for det in ball_detections.xyxy]
+            }
+        }
+        json_data = json.dumps(output_data, indent=4)
+
+        # Provide download button for JSON file
+        st.download_button(
+            label="Download Detection Results as JSON",
+            data=json_data,
+            file_name=f"{image_name.split('.')[0]}_detections.json",
+            mime="application/json"
+        )
