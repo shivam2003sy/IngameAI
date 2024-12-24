@@ -61,8 +61,7 @@ if uploaded_image is not None:
 
         # Annotate the image
         ellipse_annotator = sv.EllipseAnnotator(
-            # pink color
-            color=sv.ColorPalette.from_hex("#FFC0CB"),
+            color=sv.ColorPalette.from_hex(['#FFC0CB']),
             thickness=2
         )
         annotated_image = ellipse_annotator.annotate(scene=img, detections=player_detections)
